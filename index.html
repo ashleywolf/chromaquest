@@ -107,6 +107,7 @@ const RETICLE_DISPLAY = 120;
 let audioCtx = null;
 function initAudio(){
   if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
 }
 function playTone(freq, dur, type, vol, detune){
   if(!audioCtx) return;
@@ -653,6 +654,7 @@ function drawTimerBar(ctx,x,y,w,h,pct,t){
   ctx.save();
   // Background
   ctx.fillStyle='rgba(0,0,0,0.5)';
+  ctx.beginPath();
   ctx.roundRect(x,y,w,h,h/2);
   ctx.fill();
   // Fill
@@ -672,6 +674,7 @@ function drawTimerBar(ctx,x,y,w,h,pct,t){
 function drawMatchMeter(ctx,x,y,w,h,pct,t){
   ctx.save();
   ctx.fillStyle='rgba(0,0,0,0.6)';
+  ctx.beginPath();
   ctx.roundRect(x,y,w,h,6);ctx.fill();
   const c = pct>0.8?'#00ff66':pct>0.5?'#ffff00':pct>0.3?'#ff8800':'#ff0044';
   ctx.fillStyle=c;
@@ -923,6 +926,8 @@ document.getElementById('startBtn').addEventListener('click', async ()=>{
     await startWebcam();
   }catch(e){
     alert('Camera access needed! Please allow camera and refresh.');
+    document.getElementById('startScreen').style.display='flex';
+    document.getElementById('gameArea').style.display='none';
     return;
   }
   startAmbient();
@@ -931,8 +936,8 @@ document.getElementById('startBtn').addEventListener('click', async ()=>{
   petpetPieces=[];
   matchPct=0;
   gameTime=0;
+  lastWarmSound=0;
   particles=[];
-  requestAnimationFrame(gameLoop);
   // Small delay then start first round
   setTimeout(()=>startRound(),500);
 });
@@ -944,9 +949,10 @@ document.getElementById('restartBtn').addEventListener('click',()=>{
   score=0;
   petpetPieces=[];
   matchPct=0;
+  gameTime=0;
+  lastWarmSound=0;
   particles=[];
   startAmbient();
-  requestAnimationFrame(gameLoop);
   setTimeout(()=>startRound(),500);
 });
 
